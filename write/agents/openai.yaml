@@ -1,0 +1,4 @@
+interface:
+  display_name: "write"
+  short_description: "与我共同写自己的数学理解，检验理由与边界，保留真实思想来源"
+  default_prompt: "$write 和我共同写一篇自写笔记，只保留我的理解与感悟，逐条检验其理由和边界。"

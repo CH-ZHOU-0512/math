@@ -1,0 +1,7 @@
+# Local installation state and recoverable backups stay on this computer.
+/maintenance/installed-state.json
+/maintenance/backups/
+__pycache__/
+*.py[cod]
+.venv/
+.env
