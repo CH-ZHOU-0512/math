@@ -1,4 +1,0 @@
-interface:
-  display_name: "teacher"
-  short_description: "初学知识点与学习讲义：从直观、条件和例子走向严谨表达"
-  default_prompt: "$teacher 带我从基础学习这个主题，一次过一个核心概念，再做一个小判断。"

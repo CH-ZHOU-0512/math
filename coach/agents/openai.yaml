@@ -1,4 +1,0 @@
-interface:
-  display_name: "coach"
-  short_description: "研究难题与困难概念：可分层提示，或严格禁止提示并零公式引导"
-  default_prompt: "$coach 用引导模式陪我研究这个问题，严格不提示、零公式输出，只检查我已表达的推理。"

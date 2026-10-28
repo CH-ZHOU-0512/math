@@ -1,4 +1,0 @@
-interface:
-  display_name: "registrar"
-  short_description: "把已学内容整理为自动笔记、讲义与题目，区分自写笔记并保留真实过程"
-  default_prompt: "$registrar 把这次已经学过的内容归档，保留我的尝试、卡点和方法来源。"

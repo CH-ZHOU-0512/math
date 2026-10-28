@@ -1,4 +1,0 @@
-interface:
-  display_name: "administrator"
-  short_description: "检索与维护已有笔记、讲义和题库，给出来源并保留修改记录"
-  default_prompt: "$administrator 在我的学习库中查找与这个问题相关的笔记和做过的题，给出具体出处。"

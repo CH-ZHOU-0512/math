@@ -20,12 +20,12 @@ def main():
         for name in m.NAMES:
             if name != 'write':
                 shutil.copytree(root / name, target / name)
-        page = root / 'teacher/SKILL.md'
+        page = root / 'learn/SKILL.md'
         page.write_text(page.read_text(encoding='utf-8') + '\nSandbox revision.\n', encoding='utf-8')
         state = root / 'maintenance/installed-state.json'
         state.write_text(json.dumps({'target': str(target.resolve()), 'files': m.inventory(target)}), encoding='utf-8')
         before = m.inventory(target)
-        (root / 'teacher/references/sandbox-added.md').write_text('Sandbox addition\n', encoding='utf-8')
+        (root / 'learn/references/sandbox-added.md').write_text('Sandbox addition\n', encoding='utf-8')
 
         def run(command, *extra, success=True):
             result = subprocess.run([sys.executable, '-X', 'utf8', str(root / 'maintenance/manage.py'),
@@ -36,7 +36,7 @@ def main():
         run('deploy')
         assert m.inventory(target) == m.inventory(root)
         backup = next((root / 'maintenance/backups').iterdir())
-        live = target / 'coach/SKILL.md'
+        live = target / 'think/SKILL.md'
         previous = live.read_bytes()
         live.write_bytes(previous + b'\nConcurrent edit\n')
         run('deploy', success=False)
@@ -58,10 +58,40 @@ def main():
         run('restore', '--target', str(fresh), '--backup', str(new_backup))
         assert m.inventory(fresh) == {}
         assert untouched.read_text(encoding='utf-8') == 'unrelated skill\n'
-        shared = root / 'coach/references/collaboration.md'
+        legacy = Path(tmp) / 'legacy-install'
+        reverse = {value: key for key, value in m.LEGACY_MAP.items()}
+        for name in m.NAMES:
+            old = reverse.get(name, name)
+            shutil.copytree(root / name, legacy / old)
+            entry = legacy / old / 'SKILL.md'
+            entry.write_text(entry.read_text(encoding='utf-8').replace('name: ' + name, 'name: ' + old), encoding='utf-8')
+        legacy_before = m.inventory(legacy, m.ALL_NAMES)
+        state.write_text(json.dumps({'target': str(legacy.resolve()), 'files': legacy_before}), encoding='utf-8')
+        collision = legacy / 'learn/SKILL.md'
+        collision.parent.mkdir()
+        collision.write_text('existing unrelated learn skill\n', encoding='utf-8')
+        run('migrate-names', '--target', str(legacy), success=False)
+        assert collision.read_text(encoding='utf-8') == 'existing unrelated learn skill\n'
+        collision.unlink()
+        collision.parent.rmdir()
+        edited = legacy / 'coach/SKILL.md'
+        old_bytes = edited.read_bytes()
+        edited.write_bytes(old_bytes + b'\nConcurrent edit\n')
+        run('migrate-names', '--target', str(legacy), success=False)
+        assert edited.read_bytes() != old_bytes
+        edited.write_bytes(old_bytes)
+        known_backups = set((root / 'maintenance/backups').iterdir())
+        run('migrate-names', '--target', str(legacy))
+        assert m.inventory(legacy, m.ALL_NAMES) == m.inventory(root)
+        assert not any((legacy / old).exists() for old in m.LEGACY_MAP)
+        rename_backup, = set((root / 'maintenance/backups').iterdir()) - known_backups
+        run('restore', '--target', str(legacy), '--backup', str(rename_backup))
+        assert m.inventory(legacy, m.ALL_NAMES) == legacy_before
+        assert not any((legacy / new).exists() for new in m.LEGACY_MAP.values())
+        shared = root / 'think/references/collaboration.md'
         shared.write_bytes(shared.read_bytes() + b'\nDrift\n')
         run('check', success=False)
-        print('PASS: check; deploy hashes; external-edit refusal; restore refusal; restore hashes; clean-checkout install and restore; unrelated skill preserved; shared-reference drift')
+        print('PASS: deploy/restore; external edits; clean install; unrelated skills; name collisions; legacy rename/restore hashes; shared-reference drift')
 
 
 if __name__ == '__main__':
